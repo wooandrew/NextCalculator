@@ -87,7 +87,7 @@ function Calculator() {
 
                 if (negative) {
                     setNegative(false);
-                    console.log(nVal);
+                    console.log(idx);
                     nVal = nVal.substring(0, idx - 1) + nVal.substring(idx - 1, nVal.length);
                     console.log(nVal);
                 }
