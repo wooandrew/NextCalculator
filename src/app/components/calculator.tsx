@@ -71,14 +71,14 @@ function Calculator() {
                 return pVal;
             });
         } 
-        else if (value === '+/-') {
+        else if (value === '+/-') { 
             setValue((pVal: string) => {
 
                 let nVal = pVal;
-                while (!negative && LOperators.includes(nVal[nVal.length - 1]) || nVal[nVal.length - 1] === '(' || nVal[nVal.length - 1] === ')') {
-                    if(nVal[nVal.length - 1] === '(')
-                        setNumParenOpen(numParenOpen - 1);
-                    nVal = nVal.substring(0, nVal.length - 1);
+                if (nVal[nVal.length - 1] === ')') {
+                    setNegative(true);
+                    setNumParenOpen(numParenOpen + 1);
+                    return nVal + '\u00D7(-';
                 }
 
                 let idx = nVal.length;
@@ -87,9 +87,7 @@ function Calculator() {
 
                 if (negative) {
                     setNegative(false);
-                    console.log(idx);
-                    nVal = nVal.substring(0, idx - 1) + nVal.substring(idx - 1, nVal.length);
-                    console.log(nVal);
+                    nVal = nVal.substring(0, idx - 2) + nVal.substring(idx, nVal.length);
                 }
                 else {
                     nVal = nVal.substring(0, idx) + '(-' + nVal.substring(idx, nVal.length);
@@ -121,10 +119,10 @@ function Calculator() {
         else {
             setValue((pVal: string) => {
                 
-                setNegative(false);
-                
-                if (pVal[pVal.length - 1] === ')')
+                if (pVal[pVal.length - 1] === ')') {
+                    setNegative(false);
                     return pVal + '\u00D7' + value;
+                }
 
                 return pVal + value;
             });
