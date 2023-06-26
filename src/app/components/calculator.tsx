@@ -5,7 +5,7 @@ import { useState, useRef } from "react";
 import Button from "./button";
 import Textbox from "./textbox";
 
-const LOperators: string[] = ['%', '\u00F7', '\u00D7', '-', '+'];
+const LOperators: string[] = ['\u00F7', '\u00D7', '-', '+'];
 
 function parseEquation(eq: string): string {
 
@@ -49,22 +49,28 @@ function parseEquation(eq: string): string {
     // Shunting Yard algo
     for (let i = 0; i < eq.length; ++i) {
 
-        if (isNumber(eq[i])) {
+        if (isNumber(eq[i]) || eq[i] === '.') {
 
-            if (i > 0 && isNumber(eq[i - 1]))
+            if (i > 0 && isNumber(eq[i - 1]) || eq[i - 1] === '.')
                 nums[nums.length - 1] = nums[nums.length - 1] + eq[i];
             else
                 nums.push(eq[i]);
-        } 
+        }
+        else if (eq[i] === '%') {
+            nums.push(String(Number(nums.pop()) / 100));
+        }
         else if (LOperators.includes(eq[i])) {
-                
-            while (opPrec(eq[i]) < opPrec(ops[ops.length - 1]))
+
+            while (opPrec(eq[i]) <= opPrec(ops[ops.length - 1]))
                 calc();
-            
+        
             ops.push(eq[i]);
         }
         else if (eq[i] === '(') {
             ops.push(eq[i]);
+
+            if (eq[i + 1] === '-')
+                nums.push('0');
         }
         else if (eq[i] === ')') {
 
@@ -169,14 +175,28 @@ function Calculator() {
                 else
                     return pVal + value;
             });
-        } else if (value === '=') {
+        }
+        else if (value === '%') {
+
+            setValue((pVal: string) => {
+                if (pVal.length === 0)
+                    return '';
+                else if (pVal[pVal.length - 1] === '(')
+                    return pVal;
+                else if (LOperators.includes(pVal[pVal.length - 1]))
+                    return pVal;
+                else
+                    return pVal + value;
+            });
+        } 
+        else if (value === '=') {
             setNegative(false);
             setValue((pVal: string) => parseEquation(pVal));
         }
         else {
             setValue((pVal: string) => {
                 
-                if (pVal[pVal.length - 1] === ')') {
+                if (pVal[pVal.length - 1] === ')' || pVal[pVal.length - 1] === '%') {
                     setNegative(false);
                     return pVal + '\u00D7' + value;
                 }
