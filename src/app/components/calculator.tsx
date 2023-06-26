@@ -5,23 +5,82 @@ import { useState, useRef } from "react";
 import Button from "./button";
 import Textbox from "./textbox";
 
+const LOperators: string[] = ['%', '\u00F7', '\u00D7', '-', '+'];
+
 function parseEquation(eq: string): string {
 
-    // TODO: Implement Shunting Yard algo
-    
-    let build = '';
+    const nums: string[] = [];
+    const ops: string[] = [];
 
+    const calc: () => void = () => {
+
+        const second: number = Number(nums.pop());
+        const first: number = Number(nums.pop());
+
+        const op = ops.pop();
+
+        let solution: number = NaN;
+        
+        if (op === '\u00D7')                // Multiplication
+            solution = first * second;
+        else if (op === '\u00F7')           // Division
+            solution = first / second;
+        else if (op === '+')                // Addition
+            solution = first + second;
+        else if (op === '-')                // Subtraction
+            solution = first - second;
+
+        nums.push(String(solution));
+    };
+
+    const isNumber: (v: string) => boolean = (v: string) => v >= '0' && v <= '9';
+
+    // Operator Precedence
+    const opPrec: (v: string) => number = (v: string) => {
+
+        if (v === '\u00D7' || v === '\u00F7')
+            return 2;
+        else if (v === '+' || v === '-')
+            return 1;
+
+        return 0;
+    };
+
+    // Shunting Yard algo
     for (let i = 0; i < eq.length; ++i) {
 
-        if (eq.charAt(i) === '\u00F7')
-            build += '/';
-        else if (eq.charAt(i) === '\u00D7')
-            build += '*';
-        else
-            build += eq.charAt(i);
+        if (isNumber(eq[i])) {
+
+            if (i > 0 && isNumber(eq[i - 1]))
+                nums[nums.length - 1] = nums[nums.length - 1] + eq[i];
+            else
+                nums.push(eq[i]);
+        } 
+        else if (LOperators.includes(eq[i])) {
+                
+            while (opPrec(eq[i]) < opPrec(ops[ops.length - 1]))
+                calc();
+            
+            ops.push(eq[i]);
+        }
+        else if (eq[i] === '(') {
+            ops.push(eq[i]);
+        }
+        else if (eq[i] === ')') {
+
+            while (ops.length > 0 && ops[ops.length - 1] !== '(') {
+                console.log(ops)
+                calc();
+            }
+
+            ops.pop();
+        } 
     }
 
-    return build;
+    while (ops.length > 0)
+        calc();
+
+    return nums[nums.length - 1];
 }
 
 function Calculator() {
@@ -39,8 +98,6 @@ function Calculator() {
     }
 
     const handleClick = (value: string) => {
-
-        const LOperators: string[] = ['%', '\u00F7', '\u00D7', '-', '+'];
         
         if (value === 'C') {
             setNumParenOpen(0);
@@ -114,7 +171,7 @@ function Calculator() {
             });
         } else if (value === '=') {
             setNegative(false);
-            setValue((pVal: string) => eval(parseEquation(pVal)));
+            setValue((pVal: string) => parseEquation(pVal));
         }
         else {
             setValue((pVal: string) => {
